@@ -4,7 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { data } from '../lambda/utils/utils';
 
-export class BackendProjectAwsStack extends cdk.Stack {
+export class ProjectAwsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -18,6 +18,9 @@ export class BackendProjectAwsStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset('lambda'),
       handler: 'getProductById.handler',
+      environment: {
+        MOCK_PRODUCTS: JSON.stringify(data),
+      },
     });
 
     const api = new apigateway.RestApi(this, 'Api', {

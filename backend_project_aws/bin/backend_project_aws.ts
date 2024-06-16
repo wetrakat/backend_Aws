@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { BackendProjectAwsStack } from '../lib/backend_project_aws-stack';
+import { ProjectAwsStack } from '../lib/backend_project_aws-stack';
 
 const app = new cdk.App();
-new BackendProjectAwsStack(app, 'BackendProjectAwsStack', {
+new ProjectAwsStack(app, 'ProjectAwsStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
