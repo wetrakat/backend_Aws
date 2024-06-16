@@ -1,17 +1,24 @@
-import {
-    APIGatewayProxyEvent,
-    APIGatewayProxyHandler,
-    APIGatewayProxyResult,
-  } from "aws-lambda";
-  import {  responseHandler } from "../utils/utils";
+
+  import {  data, responseHandler } from "./utils/utils";
   
-  export const handler: APIGatewayProxyHandler = async (
-    event: APIGatewayProxyEvent,
-  ): Promise<APIGatewayProxyResult> => {
-    const products = JSON.parse(process.env.MOCK_PRODUCTS ?? "[]");
+  exports.handler = async (
+  )=> {
+
+
+    try {
+      return responseHandler(200, data);;
+    } catch (error) {
+      return responseHandler(500, {
+        message: error instanceof Error ? error.message : "error",
+      });
+    }
+
+
+
+   /*  const products = JSON.parse(process.env.MOCK_PRODUCTS ?? "[]");
     if (!products.length) {
       return responseHandler(404, { message: "No products found" });
     }
   
-    return responseHandler(200, products);
+    return responseHandler(200, products); */
   };

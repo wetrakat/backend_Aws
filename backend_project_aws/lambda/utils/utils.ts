@@ -12,16 +12,16 @@ export const data = [
 
 
   export const responseHandler = (statusCode: number, body: JSONValue): any => {
-    return {
-      statusCode,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
+    return  {
+        statusCode,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET",
           "Access-Control-Allow-Headers": "Content-Type",
           "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body)
-    };
+        },
+        body: JSON.stringify(body)
+      };
   };
 
 
