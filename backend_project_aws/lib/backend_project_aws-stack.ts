@@ -1,16 +1,42 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import { data } from '../utils/utils';
 
 export class BackendProjectAwsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const getProductsListFunction = new lambda.Function(
+      this,
+      "GetProductsListHandler",
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        code: lambda.Code.fromAsset("lambda"),
+        handler: "getProductsList.handler",
+        environment: {
+          MOCK_PRODUCTS: JSON.stringify(data),
+        },
+      },
+    );
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'BackendProjectAwsQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+
+    const api = new apigateway.RestApi(this, "ProductsApi", {
+      restApiName: "Products Service",
+      description: "This service serves products",
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      },
+    });
+
+    const productsResource = api.root.addResource("products");
+    productsResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getProductsListFunction),
+    );
+
+  
   }
 }
