@@ -4,10 +4,59 @@ import {
     APIGatewayProxyResult,
   } from "aws-lambda";
 import { IProduct, responseHandler } from "./utils";
-  
+import AWS = require('aws-sdk');
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const productsTableName = 'products';
+const stocksTableName = 'stocks';
   export const handler: APIGatewayProxyHandler = async (
     event: APIGatewayProxyEvent,
   ): Promise<APIGatewayProxyResult> => {
+
+
+
+    const id = event.pathParameters?.productId;
+    if (!id) {
+      return responseHandler(400, { message: "Product id required" });
+    }
+    const productParams = {
+      TableName: productsTableName,
+      Key: { id },
+    };
+  
+    const stockParams = {
+      TableName: stocksTableName,
+      Key: { product_id: id },
+    };
+  
+    try {
+      const productData = await dynamoDB.get(productParams).promise();
+      const stockData = await dynamoDB.get(stockParams).promise();
+  
+      const product = {
+        ...productData.Item,
+        count: stockData.Item ? stockData.Item.count : 0,
+      };
+  
+      return  responseHandler(200, product);
+    } catch (error) {
+      return responseHandler(500, {
+        message: error instanceof Error ? error.message : "error",
+      });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 
     const products: IProduct[] = JSON.parse(process.env.MOCK_PRODUCTS ?? "[]");
     const id = event.pathParameters?.id;
   
@@ -21,6 +70,6 @@ import { IProduct, responseHandler } from "./utils";
       return responseHandler(404, { message: "Product not found" });
     }
   
-    return  responseHandler(200, product);
+    return  responseHandler(200, product); */
   };
   
