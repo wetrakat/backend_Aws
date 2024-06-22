@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { data } from '../lambda/utils/utils';
+import { data } from '../lambda/utils';
 
 export class ProjectAwsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,7 +17,7 @@ export class ProjectAwsStack extends cdk.Stack {
     const LambdaGetProductById = new lambda.Function(this, 'GetProductById', {
       runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset('lambda'),
-      handler: 'getProductById.handler',
+      handler: 'getProductsById.handler',
       environment: {
         MOCK_PRODUCTS: JSON.stringify(data),
       },

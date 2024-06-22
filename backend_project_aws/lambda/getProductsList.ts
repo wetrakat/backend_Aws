@@ -1,5 +1,5 @@
 
-  import {  data, responseHandler } from "./utils/utils";
+  import {  data, responseHandler } from "./utils";
   
   exports.handler = async (
   )=> {
@@ -14,11 +14,4 @@
     }
 
 
-
-   /*  const products = JSON.parse(process.env.MOCK_PRODUCTS ?? "[]");
-    if (!products.length) {
-      return responseHandler(404, { message: "No products found" });
-    }
-  
-    return responseHandler(200, products); */
   };
