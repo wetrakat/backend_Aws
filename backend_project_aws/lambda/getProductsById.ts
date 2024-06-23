@@ -3,39 +3,40 @@ import {
     APIGatewayProxyHandler,
     APIGatewayProxyResult,
   } from "aws-lambda";
-import { IProduct, responseHandler } from "./utils";
-import AWS = require('aws-sdk');
+import {  responseHandler } from "./utils";
+import * as AWS from "aws-sdk";
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const productsTableName = 'products';
-const stocksTableName = 'stocks';
+const PRODUCTS_TABLE_NAME: string = process.env.PRODUCTS_TABLE_NAME!;
+const STOCKS_TABLE_NAME: string = process.env.STOCKS_TABLE_NAME!;
   export const handler: APIGatewayProxyHandler = async (
     event: APIGatewayProxyEvent,
   ): Promise<APIGatewayProxyResult> => {
 
 
 
-    const id = event.pathParameters?.productId;
+    const id = event.pathParameters?.id;
     if (!id) {
       return responseHandler(400, { message: "Product id required" });
     }
     const productParams = {
-      TableName: productsTableName,
+      TableName: PRODUCTS_TABLE_NAME,
       Key: { id },
     };
   
     const stockParams = {
-      TableName: stocksTableName,
+      TableName: STOCKS_TABLE_NAME,
       Key: { product_id: id },
     };
   
     try {
       const productData = await dynamoDB.get(productParams).promise();
-      const stockData = await dynamoDB.get(stockParams).promise();
-  
-      const product = {
-        ...productData.Item,
-        count: stockData.Item ? stockData.Item.count : 0,
-      };
+    const stockData = await dynamoDB.get(stockParams).promise();
+
+    const product = {
+      ...productData.Item,
+      count: stockData.Item ? stockData.Item.count : 0,
+    };
+
   
       return  responseHandler(200, product);
     } catch (error) {

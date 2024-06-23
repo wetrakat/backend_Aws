@@ -5,6 +5,7 @@ const productsTableName = 'products';
 const stocksTableName = 'stocks';
 
 const handler = async () => {
+  
   const productsParams = {
     TableName: productsTableName,
   };
@@ -13,6 +14,43 @@ const handler = async () => {
     TableName: stocksTableName,
   };
 
+  try {
+    const params = { TableName: productsTableName };
+    const result = await dynamoDB.scan(params).promise();
+    const products = result.Items || [];
+
+    if (!products.length) {
+      throw new Error("No products found");
+    }
+
+    return console.log({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(products),
+    })
+  } catch (error: any) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify(error),
+    };
+  }
+
+
+
+
+
+
+
+
+
+
+
+  /* 
   try {
     const productsData: any = await dynamoDB.scan(productsParams).promise();
     const stocksData: any = await dynamoDB.scan(stocksParams).promise();
@@ -35,7 +73,7 @@ const handler = async () => {
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  }
+  } */
 };
 
 handler();

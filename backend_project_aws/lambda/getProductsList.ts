@@ -1,39 +1,92 @@
-
-  import { responseHandler } from "./utils";
-  import AWS = require('aws-sdk');
+import { APIGatewayProxyResult } from 'aws-lambda';
+import * as AWS from 'aws-sdk';
+import { responseHandler } from './utils';
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const productsTableName = 'products';
-const stocksTableName = 'stocks';
+const PRODUCTS_TABLE_NAME: string = process.env.PRODUCTS_TABLE_NAME!;
+const STOCKS_TABLE_NAME: string = process.env.STOCKS_TABLE_NAME!;
+export const handler = async (): Promise<APIGatewayProxyResult> => {
 
-  exports.handler = async (
-  )=> {
-    const productsParams = {
-      TableName: productsTableName,
-    };
-  
-    const stocksParams = {
-      TableName: stocksTableName,
-    };
-  
-    try {
-      const productsData: any = await dynamoDB.scan(productsParams).promise();
-      const stocksData: any = await dynamoDB.scan(stocksParams).promise();
-      const productsList = productsData.Items.map((product: { id: any }) => {
-        const stock = stocksData.Items.find(
-          (item: { product_id: any }) => item.product_id === product.id
+
+
+  const productsParams = {
+    TableName: PRODUCTS_TABLE_NAME
+  };
+
+  const stocksParams = {
+    TableName: STOCKS_TABLE_NAME
+  };
+
+  try {
+    const productsData = await dynamoDB.scan(productsParams).promise();
+    const stocksData = await dynamoDB.scan(stocksParams).promise();
+    const productsItems = productsData.Items || [];
+    const stocksItems = stocksData.Items || [];
+    if(!productsItems.length){
+      throw new Error("No products found");
+    }
+    const productsList = productsItems.map(
+      (product: AWS.DynamoDB.DocumentClient.AttributeMap) => {
+        const stock = stocksItems.find(
+          (item: AWS.DynamoDB.DocumentClient.AttributeMap) =>
+            item.product_id === product.id
         );
         return {
           ...product,
           count: stock ? stock.count : 0,
         };
-      });
-  
-      return responseHandler(200, productsList);;
-    } catch (error) {
-      return responseHandler(500, {
-        message: error instanceof Error ? error.message : "error",
-      });
+      }
+    );
+
+    return responseHandler(200,productsList)
+  } catch (error) {
+    return responseHandler(500,error)
+  } 
+
+
+
+
+
+/*   try {
+    const params = { TableName: PRODUCTS_TABLE_NAME };
+    const result = await dynamoDb.scan(params).promise();
+    const products = result.Items || [];
+
+    if (!products.length) {
+      throw new NotFoundError("No products found");
     }
 
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(products),
+    };
+  } catch (error: any) {
+    return handleAPIGatewayError(error);
+  }
+ */
 
-  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+};
