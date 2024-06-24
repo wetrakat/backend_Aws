@@ -95,7 +95,7 @@ export class ProjectAwsStack extends cdk.Stack {
       integration: new integrations.HttpLambdaIntegration('createProduct', createProductFunction),
     });
 
-    new apigateway.HttpStage(this, 'ProdStage', {
+    new apigateway.HttpStage(this, 'prod', {
       httpApi: api,
       stageName: 'prod',
       autoDeploy: true,
