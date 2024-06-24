@@ -1,7 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
+import * as integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
@@ -9,17 +10,18 @@ export class ProjectAwsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const productTabele = dynamodb.Table.fromTableName(this, 'ProductsTable', 'products');
-    const stocksTable = dynamodb.Table.fromTableName(this, 'StocksTable', 'stocks');
+    const productTable = dynamodb.Table.fromTableName(this, 'TableProd', 'products');
+    const stocksTable = dynamodb.Table.fromTableName(this, 'TableStocks', 'stocks');
 
 
-    const lambdaGetProductsList = new lambda.Function(this, 'GetProductsList', {
-      runtime: lambda.Runtime.NODEJS_16_X,
+  
+    const createProductFunction = new lambda.Function(this, 'createProductHandler', {
+      runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset('lambda'),
-      handler: 'getProductsList.handler',
+      handler: 'createProduct.handler',
       environment: {
-        PRODUCTS_TABLE_NAME: 'products',
-        STOCKS_TABLE_NAME: 'stocks',
+        PRODUCTS_TABLE_NAME: productTable.tableName,
+        STOCKS_TABLE_NAME: stocksTable.tableName,
       },
     });
 
@@ -33,22 +35,18 @@ export class ProjectAwsStack extends cdk.Stack {
       },
     });
 
-    const createProductLambda = new lambda.Function(
-      this,
-      'CreateProductLambda',
-      {
-        runtime: lambda.Runtime.NODEJS_16_X,
-        code: lambda.Code.fromAsset('lambda'),
-        handler: 'createProduct.handler',
-        environment: {
-          PRODUCTS_TABLE_NAME: 'products',
-          STOCKS_TABLE_NAME: 'stocks',
-        },
-      }
-    );
+    const lambdaGetProductsList = new lambda.Function(this, 'GetProductsList', {
+      runtime: lambda.Runtime.NODEJS_16_X,
+      code: lambda.Code.fromAsset('lambda'),
+      handler: 'getProductsList.handler',
+      environment: {
+        PRODUCTS_TABLE_NAME: 'products',
+        STOCKS_TABLE_NAME: 'stocks',
+      },
+    });
 
-    productTabele.grantWriteData(createProductLambda);
-    stocksTable.grantWriteData(createProductLambda);
+    productTable.grantWriteData(createProductFunction);
+    stocksTable.grantWriteData(createProductFunction);
     const policyStatement = new iam.PolicyStatement({
       actions: [
         'dynamodb:PutItem',
@@ -64,35 +62,43 @@ export class ProjectAwsStack extends cdk.Stack {
       ],
     });
 
-    const api = new apigateway.RestApi(this, 'Api', {
-      restApiName: 'Products Api',
-      description: 'rsschool',
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
+    const api = new apigateway.HttpApi(this, 'Api', {
+      description: 'products rsschool',
+      corsPreflight: {
         allowHeaders: ['*'],
+        allowMethods: [apigateway.CorsHttpMethod.ANY],
+        allowOrigins: ['*'],
       },
     });
-    createProductLambda.addToRolePolicy(policyStatement);
+
     lambdaGetProductsList.addToRolePolicy(policyStatement);
+    createProductFunction.addToRolePolicy(policyStatement);
     LambdaGetProductById.addToRolePolicy(policyStatement);
     
 
-    const productsResource = api.root.addResource('products');
 
-    productsResource.addMethod(
-      'GET',
-      new apigateway.LambdaIntegration(lambdaGetProductsList)
-    );
+    api.addRoutes({
+      path: '/products',
+      methods: [apigateway.HttpMethod.GET],
+      integration: new integrations.HttpLambdaIntegration('getListProducts', lambdaGetProductsList),
+    });
 
-    const productResourceById = productsResource.addResource('{id}');
-    productResourceById.addMethod(
-      'GET',
-      new apigateway.LambdaIntegration(LambdaGetProductById)
-    );
-    productsResource.addMethod(
-      'POST',
-      new apigateway.LambdaIntegration(createProductLambda)
-    );
+    api.addRoutes({
+      path: '/products/{id}',
+      methods: [apigateway.HttpMethod.GET],
+      integration: new integrations.HttpLambdaIntegration('GetByIdProducts', LambdaGetProductById),
+    });
+
+    api.addRoutes({
+      path: '/products',
+      methods: [apigateway.HttpMethod.POST],
+      integration: new integrations.HttpLambdaIntegration('createProduct', createProductFunction),
+    });
+
+    new apigateway.HttpStage(this, 'ProdStage', {
+      httpApi: api,
+      stageName: 'prod',
+      autoDeploy: true,
+    });
   }
 }

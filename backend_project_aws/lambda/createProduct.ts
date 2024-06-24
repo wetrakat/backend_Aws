@@ -1,42 +1,74 @@
-import * as AWS from 'aws-sdk';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from 'aws-lambda';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  TransactWriteCommand,
+} from '@aws-sdk/lib-dynamodb';
+
 import { responseHandler } from './utils';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { randomUUID } from 'crypto';
 
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const PRODUCTS_TABLE_NAME: string = process.env.PRODUCTS_TABLE_NAME!;
-const STOCKS_TABLE_NAME: string = process.env.STOCKS_TABLE_NAME!;
-import {v4}  from 'uuid';
+const client = new DynamoDBClient({ region: 'eu-west-1' });
+const dynamoDB = DynamoDBDocumentClient.from(client);
 
-export const handler = async (event: APIGatewayProxyEvent) => {
-  console.log(event);
-  const body = JSON.parse(event.body || "{}");
-  const { title, description, price, count=0 } = body
-  const id = v4();
+const PRODUCTS_TABLE_NAME = process.env.PRODUCTS_TABLE_NAME;
+const STOCKS_TABLE_NAME = process.env.STOCKS_TABLE_NAME;
 
-  const productParams = {
-    TableName: PRODUCTS_TABLE_NAME,
-    Item: { id, title, description, price },
-  };
+export const handler: APIGatewayProxyHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+   console.log(event);
+    try {
+        const { title, description, price, count } = JSON.parse(event.body || '{}');
 
-  const stockParams = {
-    TableName: STOCKS_TABLE_NAME,
-    Item: { product_id: id, count },
-  };
+        if (!title || !description || !price || !count) {
+          throw new Error("need parrams: title, description, description, count");
+        }
 
-  try {
-   
-    const transactParams: AWS.DynamoDB.DocumentClient.TransactWriteItemsInput =
-      {
-        TransactItems: [{ Put: productParams }, { Put: stockParams }],
-      };
+        const id = randomUUID();
 
-    await dynamoDB.transactWrite(transactParams).promise();
-    return responseHandler(201, { message: "Product created successfully" });
-  } catch (error) {
-    return responseHandler(500, error);
-  }
+        const product = {
+            id: id,
+            title,
+            description,
+            price
+        }
+
+        const stock = {
+            product_id: id,
+            count: count
+        }
+
+        await dynamoDB.send(new TransactWriteCommand({
+            TransactItems: [
+                {
+                    Put: {
+                        TableName: PRODUCTS_TABLE_NAME,
+                        Item: product
+                    }
+                },
+                {
+                    Put: {
+                        TableName: STOCKS_TABLE_NAME,
+                        Item: stock
+                    }
+                }
+            ]
+        }));
+
+
+        return responseHandler(201,product)
+
+    } catch (error) {
+
+        return responseHandler(500,error)
+    }
 };
- /*  const { title, description, price, count } = JSON.parse(event.body || '{}');
+/*  const { title, description, price, count } = JSON.parse(event.body || '{}');
   const id = v4();
 
   const productParams = {
