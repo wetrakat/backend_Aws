@@ -12,7 +12,7 @@ const STOCKS_TABLE_NAME: string = process.env.STOCKS_TABLE_NAME!;
     event: APIGatewayProxyEvent,
   ): Promise<APIGatewayProxyResult> => {
 
-
+    console.log(event);
 
     const id = event.pathParameters?.id;
     if (!id) {

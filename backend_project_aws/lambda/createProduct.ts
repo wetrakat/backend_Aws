@@ -26,7 +26,7 @@ export const handler: APIGatewayProxyHandler = async (
         const { title, description, price, count } = JSON.parse(event.body || '{}');
 
         if (!title || !description || !price || !count) {
-          throw new Error("need parrams: title, description, description, count");
+          return responseHandler(500,{message:'need parrams: title, description, description, count'})
         }
 
         const id = randomUUID();
