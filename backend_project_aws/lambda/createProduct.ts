@@ -24,11 +24,16 @@ export const handler: APIGatewayProxyHandler = async (
    console.log(event);
     try {
         const { title, description, price, count } = JSON.parse(event.body || '{}');
-
-        if (!title || !description || !price || !count) {
-          return responseHandler(500,{message:'Need parrams: title, description, description, count'})
+        const jsonObj = JSON.parse(event.body || '{}');
+        if (Object.keys(jsonObj).length > 4 ){
+            return responseHandler(400, {message:'parrams shoud be only: title, description, description, count'})
         }
-
+        if (!title || !description || !price || !count) {
+          return responseHandler(400,{message:'Need parrams: title, description, description, count'})
+        }
+        if(count<0 || price<0){
+            return responseHandler(400,{message:'count and price shoud be positive number'})
+        }
         const id = randomUUID();
 
         const product = {

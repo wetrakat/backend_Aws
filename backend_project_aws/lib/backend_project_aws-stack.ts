@@ -65,9 +65,10 @@ export class ProjectAwsStack extends cdk.Stack {
     const api = new apigateway.HttpApi(this, 'Api', {
       description: 'products rsschool',
       corsPreflight: {
-        allowHeaders: ['*'],
-        allowMethods: [apigateway.CorsHttpMethod.ANY],
         allowOrigins: ['*'],
+        allowHeaders: ['*'],
+        allowMethods: [apigateway.CorsHttpMethod.ANY]
+        
       },
     });
 
