@@ -1,14 +1,13 @@
-import * as AWS from 'aws-sdk';
+
+
 import {
   S3Client,
   GetObjectCommand,
   CopyObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-const s3 = new AWS.S3({ region: 'eu-west-1' });
 const s3Client = new S3Client({ region: 'eu-west-1' });
-import csv from 'csv-parser';
+import * as csv from 'csv-parser';
 import { Readable } from 'stream';
 const BUCKET = process.env.BUCKET;
 
@@ -41,7 +40,7 @@ exports.handler = async (event: any) => {
       })
       .on('end', async () => {
         try {
-          console.log('сым parsed ');
+          console.log('csv parsed ');
 
           const objCopy = {
             Bucket: bucket,
@@ -67,7 +66,6 @@ exports.handler = async (event: any) => {
         }
       });
   } catch (error) {
-    console.error(`Error processing file ${objKey}: `, error);
     throw error;
   }
 };

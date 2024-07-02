@@ -17,7 +17,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": false,
     "inlineSourceMap": true,
-    "esModuleInterop":true,
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,

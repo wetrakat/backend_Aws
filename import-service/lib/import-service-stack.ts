@@ -18,7 +18,7 @@ export class ImportServiceStack extends cdk.Stack {
 
     // Create the Lambda function
     const importProductsFile = new lambda.Function(this, 'ImportProductsFile', {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset('lambda'),
       handler: 'importProductsFile.handler',
       environment: {
@@ -34,8 +34,8 @@ export class ImportServiceStack extends cdk.Stack {
       actions: ['s3:PutObject'],
       resources: [`${bucket.bucketArn}/uploaded/*`]
     }));
-    const importFileParser = new lambda.Function(this, 'ImportFileParser', {
-      runtime: lambda.Runtime.NODEJS_16_X,
+    const importFileParserLambda = new lambda.Function(this, 'ImportFileParser', {
+      runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset('lambda'),
       handler: 'importFileParser.handler',
       environment: {
@@ -49,12 +49,13 @@ export class ImportServiceStack extends cdk.Stack {
     
     bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(importFileParser),
+      new s3n.LambdaDestination(importFileParserLambda),
       { prefix: 'uploaded/' }
     );
 
+
     // Create the API Gateway with a GET endpoint
-    const api = new apigateway.RestApi(this, 'ProductApiCSV');
+  const api = new apigateway.RestApi(this, 'ProductApiCSV');
     const importProducts = api.root.addResource('import');
     const getIntegration = new apigateway.LambdaIntegration(importProductsFile);
     importProducts.addMethod('GET', getIntegration);
