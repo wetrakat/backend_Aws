@@ -7,7 +7,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export class ProjectAwsStack extends cdk.Stack {
@@ -31,7 +31,7 @@ export class ProjectAwsStack extends cdk.Stack {
     });
 
     createProductTopic.addSubscription(
-      new subs.EmailSubscription('hogdogcar@gmail.com', {
+      new subscriptions.EmailSubscription('hogdogcar@gmail.com', {
         filterPolicy: {
           price: sns.SubscriptionFilter.numericFilter({
             greaterThan: 10,
@@ -41,7 +41,7 @@ export class ProjectAwsStack extends cdk.Stack {
     );
 
     createProductTopic.addSubscription(
-      new subs.EmailSubscription('dog889791@gmail.com')
+      new subscriptions.EmailSubscription('dog889791@gmail.com')
     );
 
     const createProductFunction = new lambda.Function(
