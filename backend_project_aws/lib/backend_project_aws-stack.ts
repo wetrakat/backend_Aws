@@ -34,7 +34,7 @@ export class ProjectAwsStack extends cdk.Stack {
       new subs.EmailSubscription('hogdogcar@gmail.com', {
         filterPolicy: {
           price: sns.SubscriptionFilter.numericFilter({
-            between: { start: 100, stop: 300 },
+            greaterThan: 10,
           }),
         },
       })
