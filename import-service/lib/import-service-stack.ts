@@ -21,7 +21,7 @@ export class ImportServiceStack extends cdk.Stack {
     const productsQueue = sqs.Queue.fromQueueArn(
       this,
       'ImportedQueue',
-      'arn:aws:sqs:eu-west-1:134877641274:ProjectAwsStack-productQueue20235078-WGt6NUYJCP2m'
+      'arn:aws:sqs:eu-west-1:134877641274:ProjectAwsStack-productQueue20235078-1sNOBMf4eoL7'
     );
     // Create the Lambda function
     const importProductsFile = new lambda.Function(this, 'ImportProductsFile', {
