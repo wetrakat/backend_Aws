@@ -16,12 +16,16 @@ const STOCKS_TABLE_NAME = process.env.STOCKS_TABLE_NAME;
 const SNS_ARN = process.env.SNS_TOPIC_ARN;
 
 export const handler: SQSHandler = async (event: SQSEvent): Promise<void> => {
+  console.log("Received SQS event:", JSON.stringify(event, null, 2));
 
   for (const record of event.Records) {
       try {
           const { title, description, price, count } = JSON.parse(record.body);
 
-       
+          if (!title || !description || typeof Number(price) !== 'number' || typeof Number(count) !== 'number') {
+              console.error("Invalid input:", record.body);
+              continue;
+          }
 
           const productId = randomUUID();
 
